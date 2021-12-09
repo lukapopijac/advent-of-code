@@ -1,5 +1,4 @@
 const fs = require('fs');
-const { hasUncaughtExceptionCaptureCallback } = require('process');
 let f = fs.readFileSync('input.txt', 'utf8');
 let m = f
     .trim()
