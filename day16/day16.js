@@ -7,8 +7,6 @@ let message = f
 ;
 
 
-// part 1
-
 (_ => {
     let reader = {
         message,
@@ -17,7 +15,11 @@ let message = f
     
     let encoded = readPacket(reader);
 
+    // part 1
     console.log(getVersionSum(encoded));
+
+    // part 2
+    console.log(getValue(encoded));
 })();
 
 
@@ -26,7 +28,6 @@ function getVersionSum(packet) {
     for(let p of packet.packets) s += getVersionSum(p);
     return s;
 }
-
 
 function readPacket(reader) {
     let packet = {
@@ -63,9 +64,21 @@ function readPacket(reader) {
     return packet;
 }
 
-
 function read(reader, len) {
     let {message, i} = reader;
     reader.i += len;
     return parseInt(message.slice(i, i+len), 2);
+}
+
+function getValue(p) {
+    switch(p.typeId) {
+        case 0: return p.packets.reduce((a, c) => a + getValue(c), 0);
+        case 1: return p.packets.reduce((a, c) => a * getValue(c), 1);
+        case 2: return p.packets.reduce((a, c) => Math.min(a, getValue(c)), Infinity);
+        case 3: return p.packets.reduce((a, c) => Math.max(a, getValue(c)), -Infinity);
+        case 4: return p.value;
+        case 5: return +(getValue(p.packets[0]) > getValue(p.packets[1]));
+        case 6: return +(getValue(p.packets[0]) < getValue(p.packets[1]));
+        case 7: return +(getValue(p.packets[0]) == getValue(p.packets[1]));
+    }
 }
