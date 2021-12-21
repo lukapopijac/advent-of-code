@@ -23,7 +23,7 @@ From (1), solving queadratic equation for k:
 */
 
 
-function getPOptions(n) {  // only even divisors up to sqrt(n)
+function getPOptions(n) {  // only even divisors
     let ret = [];
     for(let d=2; d*d<=n; d+=2) {
         if(n%d==0) {
