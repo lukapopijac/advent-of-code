@@ -1,5 +1,4 @@
 const fs = require('fs');
-const { join } = require('path/posix');
 let f = fs.readFileSync('input.txt', 'utf8');
 let a = f
     .trim()
@@ -8,65 +7,88 @@ let a = f
 ;
 
 
-// part 1
+function findMin(queue) {
+    let minNode = {distance: Infinity};
+    for(let node of queue) {
+        if(node.distance < minNode.distance) {
+            minNode = node;
+        }
+    }
+    return minNode;
+}
 
-function getMin(nodes) {  // very inefficient, but good enough
-    let [m, n] = [nodes.length, nodes[0].length];
-    let min = Infinity;
-    let bestI = -1, bestJ;
-    for(let i=0; i<m; i++) {
-        for(let j=0; j<n; j++) {
-            let node = nodes[i][j];
-            if(!node.visited && node.distance < min) {
-                min = node.distance;
-                bestI = i;
-                bestJ = j;
+function dijkstra(startNode) {
+    startNode.distance = 0;
+    let queue = new Set([startNode]);
+    while(queue.size > 0) {
+        let u = findMin(queue);
+        queue.delete(u);
+        u.visited = true;
+        for(let v of u.neighbors) {
+            if(u.distance + v.value < v.distance) {
+                v.distance = u.distance + v.value;
+                v.prev = u;
+                queue.add(v);
             }
         }
     }
-    return bestI > -1 ? nodes[bestI][bestJ] : null;
 }
+
+function addNeighbors(nodes) {
+    let [m, n] = [nodes.length, nodes[0].length];
+    for(let i=0; i<m; i++) {
+        for(let j=0; j<n; j++) {
+            nodes[i][j].neighbors = [
+                nodes[i-1]?.[j],
+                nodes[i+1]?.[j],
+                nodes[i]?.[j-1],
+                nodes[i]?.[j+1],
+            ].filter(x => x);
+        }
+    }
+}
+
+
+// part 1
 
 (_ => {
     let [m, n] = [a.length, a[0].length];
-
     let nodes = Array(m)
         .fill(1)
         .map((_, i) => Array(n)
             .fill(1)
             .map((_, j) => ({
-                i,
-                j,
                 distance: Infinity,
                 prev: null,
                 visited: false,
+                value: a[i][j]
+            }))
+        )
+    ;
+    addNeighbors(nodes);
+    dijkstra(nodes[0][0]);
+    console.log(nodes[m-1][n-1].distance);
+})();
+
+
+// part 2
+
+(_ => {
+    let [m, n] = [a.length, a[0].length];
+    let nodes = Array(5*m)
+        .fill(1)
+        .map((_, i) => Array(5*n)
+            .fill(1)
+            .map((_, j) => ({
+                distance: Infinity,
+                prev: null,
+                visited: false,
+                value: (a[i%m][j%n] + (i/m|0) + (j/n|0) - 1)%9 + 1
             }))
         )
     ;
 
-    nodes[0][0].distance = 0;
-
-    let u;
-    while(u = getMin(nodes)) {
-        u.visited = true;
-
-        let neighbors = [
-            nodes[u.i-1]?.[u.j],
-            nodes[u.i+1]?.[u.j],
-            nodes[u.i]?.[u.j-1],
-            nodes[u.i]?.[u.j+1],
-        ].filter(x => x);
-
-        // console.log(u.i, u.j, u.distance, neighbors.map(ne=> [ne.i, ne.j]))
-
-
-        for(let v of neighbors) {
-            if(u.distance + a[v.i][v.j] < v.distance) {
-                v.distance = u.distance + a[v.i][v.j];
-                v.prev = u;
-            }
-        }
-    }
-
-    console.log(nodes[m-1][n-1].distance);
+    addNeighbors(nodes);
+    dijkstra(nodes[0][0]);
+    console.log(nodes[5*m-1][5*n-1].distance);
 })();
