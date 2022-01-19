@@ -29,24 +29,28 @@ function isPathAccessible(i, j, hall) {
     return true;
 }
 
+function replaceAt(str, i, chr) {
+    return str.substring(0, i) + chr + str.substring(i+1);
+}
+
 function generateNextState(state, roomId, depth, i, direction) {
-    let [hall, ...rooms] = state.split('|');
+    let [hall, ...rooms] = state;
     let room = rooms[roomId];
     if(direction == 'to-room') {
         let amphipod = hall[i];
-        hall = hall.substring(0, i) + '.' + hall.substring(i+1);
-        rooms[roomId] = room.substring(0, depth) + amphipod + room.substring(depth+1);
+        hall = replaceAt(hall, i, '.');
+        rooms[roomId] = replaceAt(room, depth, amphipod);
     } else {
         let amphipod = room[depth];
-        hall = hall.substring(0, i) + amphipod + hall.substring(i+1);
-        rooms[roomId] = room.substring(0, depth) + '.' + room.substring(depth+1);
+        hall = replaceAt(hall, i, amphipod);
+        rooms[roomId] = replaceAt(room, depth, '.');
     }
-    return [hall, ...rooms].join('|');
+    return [hall, ...rooms];
 }
 
 function getNextStates(state) {
     let ret = [];
-    let [hall, ...rooms] = state.split('|');
+    let [hall, ...rooms] = state;
 
     // move from hallway to room
     for(let i of hallStops) {
@@ -90,11 +94,16 @@ function getNextStates(state) {
     return ret;
 }
 
+function isStateEqual(s1, s2) {
+    for(let i=0; i<5; i++) if(s1[i] != s2[i]) return false;
+    return true;
+}
+
 function search(start, goal) {
     let bestCost = Infinity;
     function dfs(state, cost) {
         if(cost >= bestCost) return;
-        if(state == goal) bestCost = cost;
+        if(isStateEqual(state, goal)) bestCost = cost;
         let nextStates = getNextStates(state);
         for(let nextState of nextStates) {
             dfs(nextState.state, cost + nextState.cost);
@@ -106,25 +115,25 @@ function search(start, goal) {
 
 
 
-// part 1 (runs in about 6min)
+// part 1 (runs for about 2min)
 
 (_ => {
     let t0 = new Date();
     console.log(search(
-        '...........|BB|AC|AD|DC',
-        '...........|AA|BB|CC|DD'
+        ['...........', 'BB', 'AC', 'AD', 'DC'],
+        ['...........', 'AA', 'BB', 'CC', 'DD']
     ));
     console.log('time', new Date() - t0);
 })();
 
 
-// part 2 (runs in about 9s)
+// part 2 (runs for about 4s)
 
 (_ => {
     let t0 = new Date();
     console.log(search(
-        '...........|BDDB|ACBC|ABAD|DACC',
-        '...........|AAAA|BBBB|CCCC|DDDD'
+        ['...........', 'BDDB', 'ACBC', 'ABAD', 'DACC'],
+        ['...........', 'AAAA', 'BBBB', 'CCCC', 'DDDD']
     ));
     console.log('time', new Date() - t0);
 })();
